@@ -1,8 +1,24 @@
-import sqlite3 as sql
+import sqlite3
+import os
+
+##################################################################
+# Define absolute path of database
+BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Project root directoriy
+DB_PATH = os.path.join(BASE_DIR, 'InflationDB.db') # full path of the data base file
+
+def get_db_connection():
+    ''' Get and return the connection with data-base '''
+    print(f'Connecting to database at: {DB_PATH}')
+    conn = sqlite3.connect(DB_PATH)
+    conn.execute("PRAGMA foreign_keys = ON") # Foreign keys activate
+    return conn
+##################################################################
 
 
 def InflationDB_scheme():
-    conn = sql.connect('InflationDB.db') # Connect or create if that not exist
+    
+    #conn = sqlite3.connect('InflationDB.db') # Connect or create if that not exist
+    conn = get_db_connection()
     cursor = conn.cursor()
 
     # On FK (foreign keys)
@@ -40,17 +56,16 @@ def InflationDB_scheme():
     conn.commit()
     conn.close()
 
-
 def insert_data_into_inflationDB(df):
     # Data-base connect
-    conn = sql.connect('InflacionDB.db')
+    conn = sqlite3.connect('InflationDB.db')
     cursor = conn.cursor()
     cursor.execute('PRAGMA foreign_keys = ON') # Activate foreign keys
 
 
     # Insert countries with your codes
     countries = df[['country_code', 'country_name']].drop_duplicates().values.tolist()
-    cursor.executemany('INSERT OR IGNORE countries (country_code, country_name) VALUES (?, ?)', countries)
+    cursor.executemany('INSERT OR IGNORE INTO countries (country_code, country_name) VALUES (?, ?)', countries)
 
     # Insert years
     years = df['year'] # years columns
