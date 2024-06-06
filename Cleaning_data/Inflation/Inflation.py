@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[68]:
+# In[1]:
 
 
 import pandas as pd
@@ -15,44 +15,45 @@ from bs4 import BeautifulSoup
 from datetime import datetime, date, timedelta
 #from googletrans import Translator 
 
-import sqlite3
-
 
 # # <font style="font-size: 80px"><font color="yellow">C</font><font style="color: whitesmoke">onsume </font><font color="yellow">P</font><font style="color: whitesmoke">roduct </font><font color="yellow">I</font><font style="color: whitesmoke">ndex </font>(<font color="yellow">CPI</font>)</font>
 
 # ### Getting data
 
-# In[69]:
+# In[2]:
 
 
 url = 'https://thedocs.worldbank.org/en/doc/1ad246272dbbc437c74323719506aa0c-0350012021/original/Inflation-data.xlsx'
 local_path = '../../CSV_crudo/InflationWorldData.xlsx'
 
-response = requests.get(url)
+try: 
+    response = requests.get(url)
 
-if(response.status_code == 200):
-    with open(local_path, 'wb') as file:
-        file.write(response.content)
-    print(f'Download success, status code {response.status_code}')
-else:
-    print(f'Download Error, status code {response.status_code}')
+    if(response.status_code == 200):
+        with open(local_path, 'wb') as file:
+            file.write(response.content)
+        print(f'Download success, status code {response.status_code}')
+    else:
+        print(f'Download Error, status code {response.status_code}')
+except: 
+    pass
 
 
-# In[70]:
+# In[3]:
 
 
 #Inflation = pd.read_excel("../..//CSV crudo/InflationWorld.xlsx")
-excel = "../../CSV crudo/InflationWorldData.xlsx"
+excel = "../../CSV_crudo/InflationWorldData.xlsx"
 sheets = openpyxl.load_workbook(excel) #https://data.worldbank.org/indicator/FP.CPI.TOTL.ZG
 
 
-# In[71]:
+# In[4]:
 
 
 print(sheets.sheetnames)
 
 
-# In[72]:
+# In[5]:
 
 
 CPIa = pd.read_excel(excel, sheet_name="hcpi_a")
@@ -62,7 +63,7 @@ CPIa = pd.read_excel(excel, sheet_name="hcpi_a")
 
 # ### <font style="color: yellow">Columns</font>
 
-# In[73]:
+# In[6]:
 
 
 CPIa.drop(columns=["Note", "IMF Country Code", "Indicator Type", "Series Name"], inplace=True)
@@ -71,19 +72,19 @@ CPIa[["Code", "Country"]] = CPIa[["Country", "Code"]]
 CPIa.rename(columns={"Code":"Country", "Country":"Code"}, inplace=True) #If the name not exist previously to the function are not changed
 
 
-# In[74]:
+# In[7]:
 
 
 CPIa.columns = CPIa.columns.astype(str)
 
 
-# In[75]:
+# In[8]:
 
 
 len(CPIa["Country"])
 
 
-# In[76]:
+# In[9]:
 
 
 countryCount = {}
@@ -97,7 +98,7 @@ country_repeat = {k: v for k, v in countryCount.items() if(v>=2)}
 print(country_repeat)
 
 
-# In[77]:
+# In[10]:
 
 
 CPIa.info()
@@ -107,7 +108,7 @@ CPIa.info()
 
 # ### <font style="color: yellow"> This data-frame have something wrong elements? </font>
 
-# In[78]:
+# In[11]:
 
 
 nanCountry = CPIa[CPIa["Country"].isna() == True]
@@ -115,7 +116,7 @@ CPIa.drop(index=nanCountry.index, inplace=True)
 CPIa.reset_index(inplace=True, drop=True)
 
 
-# In[79]:
+# In[12]:
 
 
 #CPIa.loc[CPIa["Country"] == "Angola", "1970"] = "Hello"
@@ -128,7 +129,7 @@ dataFilter
 
 # ### <font style="color: yellow"> Sorting the data </font>
 
-# In[80]:
+# In[13]:
 
 
 nanPorcent = {}
@@ -151,7 +152,7 @@ CPIa.drop(index=noData, inplace=True)
 CPIa.reset_index(inplace=True, drop=True)
 
 
-# In[81]:
+# In[14]:
 
 
 nanPorcent = dict(sorted(nanPorcent.items(), key=lambda items: items[1], reverse=False))
@@ -171,25 +172,29 @@ CPIa
 
 # # <font>Argentina compare between <font style="color: yellow">worlddata.info</font> and <font style="color: yellow">data.worldbank.org</font></font>
 
-# In[82]:
+# In[15]:
 
 
 argentinaInf1 = CPIa[CPIa["Country"] == "Argentina"]
 
 #************ WEB scriping ************#
-url = "https://www.datosmundial.com/america/argentina/inflacion.php" # English: "https://www.worlddata.info/america/argentina/inflation-rates.php" Spanish: "https://www.datosmundial.com/america/argentina/inflacion.php"
-page = requests.get(url)
-soup = BeautifulSoup(page.text, 'html.parser')
+try: 
+    url = "https://www.datosmundial.com/america/argentina/inflacion.php" # English: "https://www.worlddata.info/america/argentina/inflation-rates.php" Spanish: "https://www.datosmundial.com/america/argentina/inflacion.php"
+    page = requests.get(url)
+    soup = BeautifulSoup(page.text, 'html.parser')
+except:
+    print('No internet for get the page.\nRemember download the html page for next time.')
+    pass
 
 
-# In[83]:
+# In[16]:
 
 
 tr_items = soup.find_all('div', class_="tablescroller")[0].find_all('td')
 print(tr_items)
 
 
-# In[84]:
+# In[17]:
 
 
 Argentina_data = {}
@@ -216,7 +221,7 @@ for i in tr_items:
 print(Argentina_data)
 
 
-# In[85]:
+# In[18]:
 
 
 for k, v in Argentina_data.items():
@@ -225,13 +230,13 @@ for k, v in Argentina_data.items():
 print(Argentina_data)
 
 
-# In[86]:
+# In[19]:
 
 
 argWD = pd.DataFrame([Argentina_data])
 
 
-# In[87]:
+# In[20]:
 
 
 argWD["Code"] = "ARG"
@@ -242,7 +247,7 @@ newRow = argWD.reindex(columns = invert_columns)
 newRow
 
 
-# In[88]:
+# In[21]:
 
 
 for counted, year in zip(range(1980, 2022), argWD.iloc[:, 2:]):
@@ -253,7 +258,7 @@ for counted, year in zip(range(1980, 2022), argWD.iloc[:, 2:]):
         break
 
 
-# In[89]:
+# In[22]:
 
 
 newColumnName = '2015'
@@ -263,7 +268,7 @@ newColumnPosition = argWD.columns.get_loc('2014') + 1
 print(newColumnName, newColumnData, newColumnPosition)
 
 
-# In[90]:
+# In[23]:
 
 
 argWD.insert(newColumnPosition, newColumnName, newColumnData)
@@ -272,7 +277,7 @@ argWD
 
 # <font style="font-size: 50px; color: yellow">Comparation</font>
 
-# In[91]:
+# In[24]:
 
 
 argWB = CPIa[CPIa['Country'] == "Argentina"]
@@ -284,7 +289,7 @@ Argentinas["Country"][1] = "ArgentinaWD"
 Argentinas
 
 
-# In[92]:
+# In[25]:
 
 
 #ArgentinasTransposed = Argentinas.set_index('Country').T
@@ -293,13 +298,13 @@ Argentinas
 
 # ## Graphic
 
-# In[93]:
+# In[26]:
 
 
 #ArgentinasTransposed = Argentinas.set_index('')
 
 
-# In[94]:
+# In[27]:
 
 
 plt.figure(figsize=(25, 8))
@@ -320,7 +325,7 @@ print(Argentinas.loc[:, '1987'], '\n')
 print(Argentinas.loc[:, '1988': '1991'])
 
 
-# In[95]:
+# In[28]:
 
 
 plt.figure(figsize=(25, 6))
@@ -340,13 +345,13 @@ plt.show()
 
 # <font style="color: green; font-size: 35px">Save changes</font>
 
-# In[96]:
+# In[29]:
 
 
 CPIa.to_csv("Inflation.csv")
 
 
-# In[97]:
+# In[30]:
 
 
 CPIa
@@ -356,7 +361,7 @@ CPIa
 
 # ### First we need to change the format data presentation 'data frame' to 'dictionary'
 
-# In[98]:
+# In[31]:
 
 
 data = {'country_code': CPIa['Code'], 
@@ -376,28 +381,28 @@ df_for_sql = df_for_sql.melt(id_vars=['country_name', 'country_code'], var_name=
 print(df_for_sql)
 
 
-# In[99]:
+# In[32]:
 
 
 import sqlite3
-
+'''
 import os
 import sys
-
 
 # Make sure, the path directory of the project is on sys.path
 try: 
     BASE_DIR = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 except NameError: # If __file__ is not defined, we need to do a manual defineof the project path. (In jupyter notebook usualy is not working, but in .py file yes, that work)
-    BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), '../../../'))
+    BASE_DIR = os.path.abspath(os.path.join(os.getcwd(), '../../'))
 
 sys.path.append(BASE_DIR)
 
 from InflationDB import get_db_connection
-
+'''
 def insert_data_into_inflationDB(df):
     # Data-base connect
-    conn = get_db_connection()
+    #conn = get_db_connection()
+    conn = sqlite3.connect('../../InflationDB.db')
     cursor = conn.cursor()
 
 
@@ -406,7 +411,7 @@ def insert_data_into_inflationDB(df):
     cursor.executemany('INSERT OR IGNORE INTO countries (country_code, country_name) VALUES (?, ?)', countries)
 
     # Insert years
-    years = df['year'] # years columns
+    years = df[['year']].values.tolist() # years columns
     cursor.executemany('INSERT OR IGNORE INTO years (year) VALUES (?)', years)
 
     # Transform al load inflation rates
@@ -416,7 +421,13 @@ def insert_data_into_inflationDB(df):
     conn.commit()
     conn.close()
 
-insert_data_into_inflationDB(df_for_sql)
+#insert_data_into_inflationDB(df_for_sql)
+
+
+# In[33]:
+
+
+df_for_sql[['year']].values.tolist()
 
 
 # In[ ]:

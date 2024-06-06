@@ -7,7 +7,7 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__)) # Project root directoriy
 DB_PATH = os.path.join(BASE_DIR, 'InflationDB.db') # full path of the data base file
 
 def get_db_connection():
-    ''' Get and return the connection with data-base '''
+    ''' 'Get and return the connection with data-base' '''
     print(f'Connecting to database at: {DB_PATH}')
     conn = sqlite3.connect(DB_PATH)
     conn.execute("PRAGMA foreign_keys = ON") # Foreign keys activate
